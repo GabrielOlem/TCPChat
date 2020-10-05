@@ -14,10 +14,28 @@ tcp.send(name.encode())
 
 def escuta():
     while 1:
-        result = tcp.recv(2048)
-        result = pickle.loads(result)
-        print (result[0][0], ':', result[0][1], '/~', result[1].decode())
+        header = tcp.recv(4)
+        if not header: break
+        print(header)
+        #data = tcp.recv(2048)
+        #data = pickle.loads(data)
+        if header == b'bye':
+            data = tcp.recv(2048)
+            data = pickle.loads(data)
+            print('O usuario ' + data.decode() + ' desconectou')
+        elif header == b'bye1':
+            _thread.exit()
+        elif header == b'list':
+            print('Usuarios conectados no momento:')
+            data = tcp.recv(2048)
+            data = pickle.loads(data)
+            for x in data:
+                print(x.decode())
+        #else:
+            #print (data[0][0] + ':' + str(data[0][1]) + '/~' + data[1].decode() + ':' + data[2].decode())
 
+        #result = pickle.loads(result)
+        #
 
 _thread.start_new_thread(escuta, ())
 msg = 'a'
