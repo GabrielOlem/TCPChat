@@ -15,18 +15,20 @@ def conectado(user):
         msg = user[0].recv(4)
         if not msg: break
         if msg == b'bye':
+            print([a for (a, b, c) in usuarios])
             user[0].send(b'bye1')
             usuarios.remove(user)
             for x in usuarios:
                 x[0].send(b'bye')
                 x[0].send(pickle.dumps(name))
-            print ('Finalizando conexao do cliente', cliente)
-            con.close()
+            print ('Finalizando conexao do cliente', user[2])
+            user[0].close()
             _thread.exit()
         elif msg == b'list':
             user[0].send(b'list')
             print([b for (a, b, c) in usuarios])
             user[0].send(pickle.dumps([b for (a, b, c) in usuarios]))
+
         '''for x in usuarios:
             if x != user:
                 #a = (cliente[0], cliente[1], msg)

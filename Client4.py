@@ -16,7 +16,6 @@ def escuta():
     while 1:
         header = tcp.recv(4)
         if not header: break
-        print(header)
         #data = tcp.recv(2048)
         #data = pickle.loads(data)
         if header == b'bye':
