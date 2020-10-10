@@ -34,10 +34,8 @@ def escuta():
         elif header == b'msg':
             user = tcp.recv(2048)
             user = pickle.loads(user)
-            print(sys.getsizeof(user))
-            print(user[0].decode())
             msg = tcp.recv(2048)
-            print(msg.decode())
+            print(user[1][0] + ':' + str(user[1][1]) + '/~' + user[0].decode() + ': ' + msg.decode())
         #else:
             #print (data[0][0] + ':' + str(data[0][1]) + '/~' + data[1].decode() + ':' + data[2].decode())
 
