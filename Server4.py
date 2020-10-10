@@ -18,9 +18,11 @@ def conectado(user):
             print([a for (a, b, c) in usuarios])
             user[0].send(b'bye1')
             usuarios.remove(user)
+            global amount
+            amount -= 1
             for x in usuarios:
                 x[0].send(b'bye')
-                x[0].send(pickle.dumps(name))
+                x[0].send(pickle.dumps(user[1]))
             print ('Finalizando conexao do cliente', user[2])
             user[0].close()
             _thread.exit()
@@ -28,7 +30,15 @@ def conectado(user):
             user[0].send(b'list')
             print([b for (a, b, c) in usuarios])
             user[0].send(pickle.dumps([b for (a, b, c) in usuarios]))
-
+        elif msg == b'send':
+            msg = user[0].recv(4)
+            if msg == b'-all':
+                msg = user[0].recv(2048)
+                for x in usuarios:
+                    if x != user:
+                        x[0].send(b'msg')
+                        x[0].send(pickle.dumps([user[1], user[2]]))
+                        x[0].send(msg)
         '''for x in usuarios:
             if x != user:
                 #a = (cliente[0], cliente[1], msg)
