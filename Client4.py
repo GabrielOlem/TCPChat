@@ -19,7 +19,7 @@ def escuta():
         if not header: break
         #data = tcp.recv(2048)
         #data = pickle.loads(data)
-        if header == b'bye':
+        if header == b'bye0':
             data = tcp.recv(2048)
             data = pickle.loads(data)
             print('O usuario ' + data.decode() + ' desconectou')
@@ -31,16 +31,18 @@ def escuta():
             data = pickle.loads(data)
             for x in data:
                 print(x.decode())
-        elif header == b'msg':
+        elif header == b'msg0':
             user = tcp.recv(2048)
             user = pickle.loads(user)
             msg = tcp.recv(2048)
             print(user[1][0] + ':' + str(user[1][1]) + '/~' + user[0].decode() + ': ' + msg.decode())
-        #else:
-            #print (data[0][0] + ':' + str(data[0][1]) + '/~' + data[1].decode() + ':' + data[2].decode())
-
-        #result = pickle.loads(result)
-        #
+        elif header == b'msg1':
+            user = tcp.recv(2048)
+            user = pickle.loads(user)
+            msg = tcp.recv(2048)
+            print('(pm)' + user[1][0] + ':' + str(user[1][1]) + '/~' + user[0].decode() + ': ' + msg.decode())
+        elif header == b'erro':
+            print('Usuario nao encontrado')
 
 _thread.start_new_thread(escuta, ())
 msg = 'a'

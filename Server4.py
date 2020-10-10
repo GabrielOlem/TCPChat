@@ -21,7 +21,7 @@ def conectado(user):
             global amount
             amount -= 1
             for x in usuarios:
-                x[0].send(b'bye')
+                x[0].send(b'bye0')
                 x[0].send(pickle.dumps(user[1]))
             print ('Finalizando conexao do cliente', user[2])
             user[0].close()
@@ -31,21 +31,28 @@ def conectado(user):
             print([b for (a, b, c) in usuarios])
             user[0].send(pickle.dumps([b for (a, b, c) in usuarios]))
         elif msg == b'send':
-            msg = user[0].recv(4)
+            msg = user[0].recv(5)
             if msg == b'-all':
                 msg = user[0].recv(2048)
                 for x in usuarios:
                     if x != user:
-                        x[0].send(b'msg')
+                        x[0].send(b'msg0')
                         x[0].send(pickle.dumps([user[1], user[2]]))
                         x[0].send(msg)
-        '''for x in usuarios:
-            if x != user:
-                #a = (cliente[0], cliente[1], msg)
-                #teste = pickle.dumps(a)
-                x[0].send(pickle.dumps((cliente, name, msg)))
-                print('Message sent to', x[2][0])'''
-
+            elif msg == b'-user':
+                target = user[0].recv(10)
+                msg = user[0].recv(2048)
+                tUser = -1
+                for x in usuarios:
+                    if x[1] == target:
+                        tUser = x
+                        break
+                if tUser == -1:
+                    user[0].send(b'erro')
+                else:
+                    tUser[0].send(b'msg1')
+                    tUser[0].send(pickle.dumps([user[1], user[2]]))
+                    tUser[0].send(msg)
     print ('Finalizando conexao do cliente', cliente)
     #usuarios.remove(con)
     con.close()
