@@ -15,52 +15,54 @@ class Usuario:
         self.name = n
         self.cliente = cl
 
+class Mensagem:
+    def __init__(self, msg):
+        self.header = msg[0]
+        if len(msg) == 5:
+            self.tipo = msg[1]
+            self.msg = msg[2]
+            self.tempo = msg[3]
+        if len(msg) == 6:
+            self.tipo = msg[1]
+            self.user = msg[2]
+            self.msg = msg[3]
+            self.tempo = msg[4]
+
 def conectado(user):
     print ('Conectado por', user.cliente)
     while 1:
-        msg = user.conexao.recv(4)
+        msg = user.conexao.recv(2048)
         if not msg: break
-        if msg == b'bye':
-            user.conexao.send(b'bye1')
+        msg = msg.decode().split('\r\n')
+        msg = Mensagem(msg)
+        if msg.header == 'bye':
+            user.conexao.send(b'bye1\r\n')
             usuarios.remove(user)
             global amount
             amount -= 1
             for x in usuarios:
-                x.conexao.send(b'bye0')
-                x.conexao.send(pickle.dumps(user.name))
+                x.conexao.send(('bye0\r\n' + (user.name).decode() + '\r\n').encode())
             print ('Finalizando conexao do cliente', user.cliente)
             user.conexao.close()
             _thread.exit()
-        elif msg == b'list':
+        elif msg.header == 'list':
             user.conexao.send(b'list')
             user.conexao.send(pickle.dumps([x.name for x in usuarios]))
-        elif msg == b'send':
-            msg = user.conexao.recv(5)
-            if msg == b'-all':
-                msg = user.conexao.recv(2048)
-                tempo = user.conexao.recv(2048)
+        elif msg.header == 'send':
+            if msg.tipo == '-all':
                 for x in usuarios:
                     if x != user:
-                        x.conexao.send(b'msg0')
-                        x.conexao.send(pickle.dumps([user.name, user.cliente]))
-                        x.conexao.send(msg)
-                        x.conexao.send(tempo)
-            elif msg == b'-user':
-                target = user.conexao.recv(10)
-                msg = user.conexao.recv(2048)
-                tempo = user.conexao.recv(2048)
+                        x.conexao.send(('msg0\r\n' + (user.name).decode() + '\r\n' + str(user.cliente[0]) + '\r\n' + str(user.cliente[1]) + '\r\n' + msg.msg + '\r\n' + msg.tempo + '\r\n').encode())
+            elif msg.tipo == '-user':
                 tUser = -1
                 for x in usuarios:
-                    if x.name == target:
+                    if x.name.decode() == msg.user:
                         tUser = x
                         break
                 if tUser == -1:
-                    user.conexao.send(b'erro')
+                    user.conexao.send(b'erro\r\n')
                 else:
-                    tUser.conexao.send(b'msg1')
-                    tUser.conexao.send(pickle.dumps([user.name, user.cliente]))
-                    tUser.conexao.send(msg)
-                    tUser.conexao.send(tempo)
+                    tUser.conexao.send(('msg1\r\n' + (user.name).decode() + '\r\n' + str(user.cliente[0]) + '\r\n' + str(user.cliente[1]) + '\r\n' + msg.msg + '\r\n' + msg.tempo + '\r\n').encode())
     print ('Finalizando conexao do cliente', cliente)
     #usuarios.remove(con)
     con.close()
