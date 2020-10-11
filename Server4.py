@@ -6,53 +6,57 @@ host = ''
 port = 22222
 amount = 0
 usuarios = []
+# Criar um dicionario para cada usuario, que a chave é a conexao Usuarios = {Con1:{'name': nome, 'cliente':cliente}}
+# atentar para caso não exista
 
-
+class Usuario:
+    def __init__(self, co, n, cl):
+        self.conexao = co
+        self.name = n
+        self.cliente = cl
 
 def conectado(user):
-    print ('Conectado por', user[2])
+    print ('Conectado por', user.cliente)
     while 1:
-        msg = user[0].recv(4)
+        msg = user.conexao.recv(4)
         if not msg: break
         if msg == b'bye':
-            print([a for (a, b, c) in usuarios])
-            user[0].send(b'bye1')
+            user.conexao.send(b'bye1')
             usuarios.remove(user)
             global amount
             amount -= 1
             for x in usuarios:
-                x[0].send(b'bye0')
-                x[0].send(pickle.dumps(user[1]))
-            print ('Finalizando conexao do cliente', user[2])
-            user[0].close()
+                x.conexao.send(b'bye0')
+                x.conexao.send(pickle.dumps(user.name))
+            print ('Finalizando conexao do cliente', user.cliente)
+            user.conexao.close()
             _thread.exit()
         elif msg == b'list':
-            user[0].send(b'list')
-            print([b for (a, b, c) in usuarios])
-            user[0].send(pickle.dumps([b for (a, b, c) in usuarios]))
+            user.conexao.send(b'list')
+            user.conexao.send(pickle.dumps([x.name for x in usuarios]))
         elif msg == b'send':
-            msg = user[0].recv(5)
+            msg = user.conexao.recv(5)
             if msg == b'-all':
-                msg = user[0].recv(2048)
+                msg = user.conexao.recv(2048)
                 for x in usuarios:
                     if x != user:
-                        x[0].send(b'msg0')
-                        x[0].send(pickle.dumps([user[1], user[2]]))
-                        x[0].send(msg)
+                        x.conexao.send(b'msg0')
+                        x.conexao.send(pickle.dumps([user.name, user.cliente]))
+                        x.conexao.send(msg)
             elif msg == b'-user':
-                target = user[0].recv(10)
-                msg = user[0].recv(2048)
+                target = user.conexao.recv(10)
+                msg = user.conexao.recv(2048)
                 tUser = -1
                 for x in usuarios:
-                    if x[1] == target:
+                    if x.name == target:
                         tUser = x
                         break
                 if tUser == -1:
-                    user[0].send(b'erro')
+                    user.conexao.send(b'erro')
                 else:
-                    tUser[0].send(b'msg1')
-                    tUser[0].send(pickle.dumps([user[1], user[2]]))
-                    tUser[0].send(msg)
+                    tUser.conexao.send(b'msg1')
+                    tUser.conexao.send(pickle.dumps([user.name, user.cliente]))
+                    tUser.conexao.send(msg)
     print ('Finalizando conexao do cliente', cliente)
     #usuarios.remove(con)
     con.close()
@@ -69,7 +73,7 @@ while 1:
     con, cliente = tcp.accept()
     name = con.recv(2048)
     #con.send(pickle.dumps((cliente[0], cliente[1], )))
-    usuarios.append((con, name, cliente))
+    usuarios.append(Usuario(con, name, cliente))
     _thread.start_new_thread(conectado, tuple([usuarios[amount]]))
     amount += 1
 

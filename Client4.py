@@ -49,6 +49,9 @@ msg = 'a'
 while msg != '\x18':
     msg = input()
     tcp.send (msg.encode())
+    if msg == 'bye':
+        quit()
+
 
     
 tcp.close()
