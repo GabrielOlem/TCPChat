@@ -2,6 +2,18 @@ import time
 import socket
 import _thread
 import pickle
+import PySimpleGUI as sg
+
+class Screen:
+    def __init__(self, nome):
+        sg.theme('DarkBrown1')
+        layout = [
+            [sg.Text('Name' + nome)],
+            [sg.Output(size=(80,20))],
+            [sg.Text('Message:'), sg.Input(do_not_clear = False), sg.Button('Send message'), sg.Button('Exit')]
+        ]
+        self.screen = sg.Window("Chat", layout, return_keyboard_events = True);
+
 class Mensagem:
     def __init__(self, m):
         self.header = m[0]
@@ -20,17 +32,14 @@ def escuta():
         if not header: break
         header = header.decode().split('\r\n')
         message = Mensagem(header)
-        
+    
         if message.header == 'bye0':
             print('O usuario ' + message.name + ' desconectou')
         elif message.header == 'bye1':
             _thread.exit()
         elif message.header == 'list':
             print('Usuarios conectados no momento:')
-            data = tcp.recv(2048)
-            data = pickle.loads(data)
-            for x in data:
-                print(x.decode())
+            print(message.name, end = '')
         elif message.header == 'msg0':
             print(message.ip + ':' + message.port + '/~' + message.name + ': ' + message.msg + ' ' + message.time)
         elif message.header == 'msg1':
@@ -45,6 +54,8 @@ tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 dest = (HOST, PORT)
 tcp.connect(dest)
 tcp.send(name.encode())
+
+#UI = Screen(name)
 
 _thread.start_new_thread(escuta, ())
 while 1:

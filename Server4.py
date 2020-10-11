@@ -46,8 +46,11 @@ def conectado(user):
             user.conexao.close()
             _thread.exit()
         elif msg.header == 'list':
-            user.conexao.send(b'list')
-            user.conexao.send(pickle.dumps([x.name for x in usuarios]))
+            saida = ''
+            for x in usuarios:
+                saida += x.name.decode() + '\n'
+            user.conexao.send(('list\r\n' + saida + '\r\n').encode())
+            
         elif msg.header == 'send':
             if msg.tipo == '-all':
                 for x in usuarios:
