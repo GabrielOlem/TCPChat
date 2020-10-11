@@ -38,14 +38,17 @@ def conectado(user):
             msg = user.conexao.recv(5)
             if msg == b'-all':
                 msg = user.conexao.recv(2048)
+                tempo = user.conexao.recv(2048)
                 for x in usuarios:
                     if x != user:
                         x.conexao.send(b'msg0')
                         x.conexao.send(pickle.dumps([user.name, user.cliente]))
                         x.conexao.send(msg)
+                        x.conexao.send(tempo)
             elif msg == b'-user':
                 target = user.conexao.recv(10)
                 msg = user.conexao.recv(2048)
+                tempo = user.conexao.recv(2048)
                 tUser = -1
                 for x in usuarios:
                     if x.name == target:
@@ -57,6 +60,7 @@ def conectado(user):
                     tUser.conexao.send(b'msg1')
                     tUser.conexao.send(pickle.dumps([user.name, user.cliente]))
                     tUser.conexao.send(msg)
+                    tUser.conexao.send(tempo)
     print ('Finalizando conexao do cliente', cliente)
     #usuarios.remove(con)
     con.close()
