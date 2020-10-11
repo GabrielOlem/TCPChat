@@ -54,8 +54,8 @@ def conectado(user):
         elif msg.header == 'send':
             if msg.tipo == '-all':
                 for x in usuarios:
-                    if x != user:
-                        x.conexao.send(('msg0\r\n' + (user.name).decode() + '\r\n' + str(user.cliente[0]) + '\r\n' + str(user.cliente[1]) + '\r\n' + msg.msg + '\r\n' + msg.tempo + '\r\n').encode())
+                    #if x != user:
+                    x.conexao.send(('msg0\r\n' + (user.name).decode() + '\r\n' + str(user.cliente[0]) + '\r\n' + str(user.cliente[1]) + '\r\n' + msg.msg + '\r\n' + msg.tempo + '\r\n').encode())
             elif msg.tipo == '-user':
                 tUser = -1
                 for x in usuarios:

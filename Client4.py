@@ -8,9 +8,9 @@ class Screen:
     def __init__(self, nome):
         sg.theme('DarkBrown1')
         layout = [
-            [sg.Text('Name' + nome)],
+            [sg.Text('Name: ' + nome)],
             [sg.Output(size=(80,20))],
-            [sg.Text('Message:'), sg.Input(do_not_clear = False), sg.Button('Send message'), sg.Button('Exit')]
+            [sg.Text('Message:'), sg.Input(do_not_clear = False), sg.Button('Send message', bind_return_key = True), sg.Button('Exit')]
         ]
         self.screen = sg.Window("Chat", layout, return_keyboard_events = True);
 
@@ -55,32 +55,36 @@ dest = (HOST, PORT)
 tcp.connect(dest)
 tcp.send(name.encode())
 
-#UI = Screen(name)
+UI = Screen(name)
 
 _thread.start_new_thread(escuta, ())
 while 1:
-    msg = input()
-    if msg == "":
-        continue
-    tempo = time.localtime()[0:5]
-    tempo = str(tempo[3]) + 'h' + str(tempo[4]) + ' ' + str(tempo[2]) + '/' + str(tempo[1]) + '/' + str(tempo[0])
-    novo = msg.split(' ')
-    if novo[0] == 'bye' and len(novo) == 1:
-        tcp.send('bye\r\n'.encode())
-        quit()
-    elif novo[0] == 'list' and len(novo) == 1:
-        tcp.send('list\r\n'.encode())
-    elif novo[0] == 'send' and len(novo) > 1:
-        if novo[1] == '-all' and len(novo) > 2:
-            tcp.send(('send\r\n-all\r\n'+ msg[10:] + '\r\n' + tempo + '\r\n').encode())
-        elif novo[1] == '-user' and len(novo) > 3:
-            tcp.send(('send\r\n-user\r\n'+ novo[2] + '\r\n' + msg[11 + len(novo[2]):] + '\r\n' + tempo + '\r\n').encode())
+    event, msg = UI.screen.Read()
+    msg = msg[0]
+
+    if event in ('Send message', ''):
+        tempo = time.localtime()[0:5]
+        tempo = str(tempo[3]) + 'h' + str(tempo[4]) + ' ' + str(tempo[2]) + '/' + str(tempo[1]) + '/' + str(tempo[0])
+        novo = msg.split(' ')
+        if novo[0] == 'bye' and len(novo) == 1:
+            tcp.send('bye\r\n'.encode())
+            quit()
+        elif novo[0] == 'list' and len(novo) == 1:
+            tcp.send('list\r\n'.encode())
+        elif novo[0] == 'send' and len(novo) > 1:
+            if novo[1] == '-all' and len(novo) > 2:
+                tcp.send(('send\r\n-all\r\n'+ msg[10:] + '\r\n' + tempo + '\r\n').encode())
+            elif novo[1] == '-user' and len(novo) > 3:
+                tcp.send(('send\r\n-user\r\n'+ novo[2] + '\r\n' + msg[11 + len(novo[2]):] + '\r\n' + tempo + '\r\n').encode())
+            else:
+                print('Codigo mal inserido')
+        elif msg == 'quit':
+            quit()
         else:
             print('Codigo mal inserido')
-    elif msg == 'quit':
+    elif event in ('Exit', sg.WIN_CLOSED):
+        tcp.send(b'bye\r\n')
         quit()
-    else:
-        print('Codigo mal inserido')
     
 
 
