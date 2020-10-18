@@ -1,18 +1,21 @@
 import time
 import socket
 import _thread
-import pickle
 import PySimpleGUI as sg
 
 class Screen:
     def __init__(self, nome):
         sg.theme('DarkBrown1')
-        layout = [
+        self.layout = [
             [sg.Text('Name: ' + nome)],
             [sg.Output(size=(80,20))],
             [sg.Text('Message:'), sg.Input(do_not_clear = False), sg.Button('Send message', bind_return_key = True), sg.Button('Exit')]
         ]
-        self.screen = sg.Window("Chat", layout, return_keyboard_events = True);
+        self.screen = sg.Window("Chat", self.layout, return_keyboard_events = True)
+    def clearInput(self):
+        self.layout[2][1].Update('')
+    def clearOutput(self):
+        self.layout[1][0].Update('')
 
 class Mensagem:
     def __init__(self, m):
@@ -82,6 +85,7 @@ while 1:
     msg = msg[0]
 
     if event in ('Send message', ''):
+        UI.clearInput()
         tempo = time.localtime()[0:5]
         tempo = str(tempo[3]) + 'h' + str(tempo[4]) + ' ' + str(tempo[2]) + '/' + str(tempo[1]) + '/' + str(tempo[0])
         novo = msg.split(' ')
@@ -99,6 +103,8 @@ while 1:
                 print('Codigo mal inserido')
         elif msg == 'quit':
             quit()
+        elif novo[0] == 'clear':
+            UI.clearOutput()
         else:
             print('Codigo mal inserido')
     elif event in ('Exit', sg.WIN_CLOSED):

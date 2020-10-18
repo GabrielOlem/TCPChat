@@ -1,6 +1,5 @@
 import socket
 import _thread
-import pickle
 
 host = ''
 port = 22222
@@ -80,6 +79,7 @@ tcp.listen(1)
 
 while 1:
     con, cliente = tcp.accept()
+    #confirmacao de nome
     while 1:
         name = con.recv(2048)
         if name in [x.name for x in usuarios]:
