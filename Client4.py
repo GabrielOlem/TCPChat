@@ -21,7 +21,7 @@ class Mensagem:
     def __init__(self, m):
         self.header = m[0]
         if len(m) == 3:
-            self.name = m[1] 
+            self.name = m[1]
         elif len(m) == 7:
             self.name = m[1]
             self.ip = m[2]
@@ -35,7 +35,7 @@ def escuta():
         if not header: break
         header = header.decode().split('\r\n')
         message = Mensagem(header)
-    
+
         if message.header == 'bye0':
             print('O usuario ' + message.name + ' desconectou')
         elif message.header == 'bye1':
@@ -48,7 +48,7 @@ def escuta():
         elif message.header == 'msg1':
             print('(pm)' + message.ip + ':' + message.port + '/~' + message.name + ': ' + message.msg + ' ' + message.time)
         elif message.header == 'erro':
-            print('Usuario nao encontrado')
+            sg.popup_no_buttons('Usuario nao encontrado')
 
 name = input('Insira seu nome:')
 while 1:
@@ -100,18 +100,18 @@ while 1:
             elif novo[1] == '-user' and len(novo) > 3:
                 tcp.send(('send\r\n-user\r\n'+ novo[2] + '\r\n' + msg[11 + len(novo[2]):] + '\r\n' + tempo + '\r\n').encode())
             else:
-                print('Codigo mal inserido')
+                sg.popup_no_buttons('Codigo mal inserido')
         elif msg == 'quit':
             quit()
         elif novo[0] == 'clear':
             UI.clearOutput()
         else:
-            print('Codigo mal inserido')
+            sg.popup_no_buttons('Codigo mal inserido')
     elif event in ('Exit', sg.WIN_CLOSED):
         tcp.send(b'bye\r\n')
         quit()
-    
 
 
-    
+
+
 tcp.close()
