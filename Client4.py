@@ -47,13 +47,32 @@ def escuta():
         elif message.header == 'erro':
             print('Usuario nao encontrado')
 
-name = input('Insert your name:')
+name = input('Insira seu nome:')
+while 1:
+    if ' ' in name:
+        name = input('Nao eh permitido espacos! Insira o nome novamente:')
+    else:
+        break
+
 HOST = socket.gethostname()
 PORT = 22222            # Porta que o Servidor esta
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 dest = (HOST, PORT)
 tcp.connect(dest)
 tcp.send(name.encode())
+
+while 1:
+    a = tcp.recv(2048)
+    if a == b'0':
+        name = input('Nome ja registrado, insira outro nome:')
+        while 1:
+            if ' ' in name:
+                name = input('Nao eh permitido espacos! Insira o nome novamente:')
+            else:
+                break
+        tcp.send(name.encode())
+    elif a == b'1':
+        break
 
 UI = Screen(name)
 

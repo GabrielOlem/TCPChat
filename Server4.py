@@ -80,7 +80,14 @@ tcp.listen(1)
 
 while 1:
     con, cliente = tcp.accept()
-    name = con.recv(2048)
+    while 1:
+        name = con.recv(2048)
+        if name in [x.name for x in usuarios]:
+            con.send(b'0')
+        else:
+            con.send(b'1')
+            break 
+
     #con.send(pickle.dumps((cliente[0], cliente[1], )))
     usuarios.append(Usuario(con, name, cliente))
     _thread.start_new_thread(conectado, tuple([usuarios[amount]]))
