@@ -12,8 +12,10 @@ class Screen:
             [sg.Text('Message:'), sg.Input(do_not_clear = False), sg.Button('Send message', bind_return_key = True), sg.Button('Exit')]
         ]
         self.screen = sg.Window("Chat", self.layout, return_keyboard_events = True)
+
     def clearInput(self):
         self.layout[2][1].Update('')
+
     def clearOutput(self):
         self.layout[1][0].Update('')
 
@@ -28,6 +30,8 @@ class Mensagem:
             self.port = m[3]
             self.msg = m[4]
             self.time = m[5]
+
+abigobal = 0
 
 def escuta():
     while 1:
@@ -48,7 +52,9 @@ def escuta():
         elif message.header == 'msg1':
             print('(pm)' + message.ip + ':' + message.port + '/~' + message.name + ': ' + message.msg + ' ' + message.time)
         elif message.header == 'erro':
-            sg.popup_no_buttons('Usuario nao encontrado')
+            global abigobal
+            abigobal = 1
+            #sg.popup_no_buttons('Usuario nao encontrado')
 
 name = input('Insira seu nome:')
 while 1:
@@ -83,7 +89,9 @@ _thread.start_new_thread(escuta, ())
 while 1:
     event, msg = UI.screen.Read()
     msg = msg[0]
-
+    if abigobal == 1:
+        sg.popup_no_buttons('teste')
+        abigobal = 0
     if event in ('Send message', ''):
         UI.clearInput()
         tempo = time.localtime()[0:5]
@@ -101,8 +109,6 @@ while 1:
                 tcp.send(('send\r\n-user\r\n'+ novo[2] + '\r\n' + msg[11 + len(novo[2]):] + '\r\n' + tempo + '\r\n').encode())
             else:
                 sg.popup_no_buttons('Codigo mal inserido')
-        elif msg == 'quit':
-            quit()
         elif novo[0] == 'clear':
             UI.clearOutput()
         else:
