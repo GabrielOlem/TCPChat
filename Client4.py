@@ -3,21 +3,40 @@ import socket
 import _thread
 import PySimpleGUI as sg
 
+
+abigobal = 0
+chats = {}
+tipo = 'all'
+
 class Screen:
     def __init__(self, nome):
         sg.theme('DarkBrown1')
+        self.name = nome
+        self.tipo = 'all'
         self.layout = [
-            [sg.Text('Name: ' + nome)],
-            [sg.Output(size=(80,20))],
-            [sg.Text('Message:'), sg.Input(do_not_clear = False), sg.Button('Send message', bind_return_key = True), sg.Button('Exit')]
+            [sg.Text('Name: ' + self.name, key = '__Name__')],
+            [sg.Text('Tipo: ' + self.tipo, key = '__Type__', size=(20, 1))],
+            [sg.Output(size=(80,20), key = '__Print__')],
+            [sg.Text('Message:'), sg.Input(do_not_clear = False, key = '__Input__'), sg.Button('Send message', bind_return_key = True), sg.Button('Exit')]        
         ]
         self.screen = sg.Window("Chat", self.layout, return_keyboard_events = True)
 
+    def changeChat(self, t):
+        self.screen.Element('__Type__').Update(t)
+        
+
     def clearInput(self):
-        self.layout[2][1].Update('')
+        self.screen.Element('__Input__').Update('')
 
     def clearOutput(self):
-        self.layout[1][0].Update('')
+        self.screen.Element('__Print__').Update('')
+    
+    def setOutput(self, c):
+        self.screen.Element('__Print__').Update(c)
+
+    def getContent(self):
+        return self.screen.Element('__Print__').Get()
+        
 
 class Mensagem:
     def __init__(self, m):
@@ -30,8 +49,24 @@ class Mensagem:
             self.port = m[3]
             self.msg = m[4]
             self.time = m[5]
+        elif len(m) == 8:
+            self.name = m[1]
+            self.ip = m[2]
+            self.port = m[3]
+            self.msg = m[4]
+            self.time = m[5]
+            self.dest = m[6]
 
-abigobal = 0
+def limpa(a):
+    saida = ''
+    if a[0] == '\n':
+        a = a[1:]
+    for i in range(len(a)):
+        if i + 1 != len(a) and a[i] == '\n' and a[i+1] == '\n':
+            i += 1
+        else:
+            saida += a[i]
+    return saida        
 
 def escuta():
     while 1:
@@ -39,6 +74,9 @@ def escuta():
         if not header: break
         header = header.decode().split('\r\n')
         message = Mensagem(header)
+        global tipo
+        global UI
+        global chats
 
         if message.header == 'bye0':
             print('O usuario ' + message.name + ' desconectou')
@@ -48,13 +86,36 @@ def escuta():
             print('Usuarios conectados no momento:')
             print(message.name, end = '')
         elif message.header == 'msg0':
+            if tipo != 'all':
+                chats[tipo] = limpa(UI.getContent())
+                tipo = 'all'
+                UI.changeChat('Tipo: ' + tipo)
+                UI.setOutput(chats[tipo])
             print(message.ip + ':' + message.port + '/~' + message.name + ': ' + message.msg + ' ' + message.time)
         elif message.header == 'msg1':
+            chats[tipo] = limpa(UI.getContent())
+            tipo = message.name
+            UI.changeChat('Tipo: ' + tipo)
+            if tipo in chats:
+                UI.setOutput(chats[tipo])
+            else:
+                UI.clearOutput()
+            
+            print('(pm)' + message.ip + ':' + message.port + '/~' + message.name + ': ' + message.msg + ' ' + message.time)
+        elif message.header == 'msg2':
+            chats[tipo] = limpa(UI.getContent())
+            tipo = message.dest
+            UI.changeChat('Tipo: ' + tipo)
+            if tipo in chats:
+                print(tipo)
+                UI.setOutput(chats[tipo])
+            else:
+                UI.clearOutput()
+            
             print('(pm)' + message.ip + ':' + message.port + '/~' + message.name + ': ' + message.msg + ' ' + message.time)
         elif message.header == 'erro':
             global abigobal
             abigobal = 1
-            #sg.popup_no_buttons('Usuario nao encontrado')
 
 name = input('Insira seu nome:')
 while 1:
@@ -88,9 +149,9 @@ UI = Screen(name)
 _thread.start_new_thread(escuta, ())
 while 1:
     event, msg = UI.screen.Read()
-    msg = msg[0]
+    msg = msg['__Input__']
     if abigobal == 1:
-        sg.popup_no_buttons('teste')
+        sg.popup_no_buttons('Usuario nao encontrado')
         abigobal = 0
     if event in ('Send message', ''):
         UI.clearInput()
@@ -105,12 +166,14 @@ while 1:
         elif novo[0] == 'send' and len(novo) > 1:
             if novo[1] == '-all' and len(novo) > 2:
                 tcp.send(('send\r\n-all\r\n'+ msg[10:] + '\r\n' + tempo + '\r\n').encode())
-            elif novo[1] == '-user' and len(novo) > 3:
+            elif novo[1] == '-user' and len(novo) > 3 and novo[2] != name:
                 tcp.send(('send\r\n-user\r\n'+ novo[2] + '\r\n' + msg[11 + len(novo[2]):] + '\r\n' + tempo + '\r\n').encode())
             else:
                 sg.popup_no_buttons('Codigo mal inserido')
         elif novo[0] == 'clear':
             UI.clearOutput()
+        elif novo[0] == 'show':
+            print(chats)
         else:
             sg.popup_no_buttons('Codigo mal inserido')
     elif event in ('Exit', sg.WIN_CLOSED):

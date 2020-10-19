@@ -64,6 +64,7 @@ def conectado(user):
                 if tUser == -1:
                     user.conexao.send(b'erro\r\n')
                 else:
+                    user.conexao.send(('msg2\r\n' + (user.name).decode() + '\r\n' + str(user.cliente[0]) + '\r\n' + str(user.cliente[1]) + '\r\n' + msg.msg + '\r\n' + msg.tempo + '\r\n' + msg.user + '\r\n').encode())
                     tUser.conexao.send(('msg1\r\n' + (user.name).decode() + '\r\n' + str(user.cliente[0]) + '\r\n' + str(user.cliente[1]) + '\r\n' + msg.msg + '\r\n' + msg.tempo + '\r\n').encode())
     print ('Finalizando conexao do cliente', cliente)
     #usuarios.remove(con)
