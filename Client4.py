@@ -2,11 +2,20 @@ import time
 import socket
 import _thread
 import PySimpleGUI as sg
+import tkinter as tk
+from tkinter import messagebox
+import pyglet
 
 
 abigobal = 0
 chats = {}
 tipo = 'all'
+name=""
+HOST = socket.gethostname()
+PORT = 22222            # Porta que o Servidor esta
+tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+dest = (HOST, PORT)
+tcp.connect(dest)
 
 class Screen:
     def __init__(self, nome):
@@ -117,32 +126,56 @@ def escuta():
             global abigobal
             abigobal = 1
 
-name = input('Insira seu nome:')
-while 1:
-    if ' ' in name:
-        name = input('Nao eh permitido espacos! Insira o nome novamente:')
+def getInput(root,user_text):
+    global tcp
+    global name
+    name=user_text.get()
+    user_text.delete(0,tk.END)
+
+    if " " in name:
+        messagebox.showerror("ERRO","Nao eh permitido espacos! Insira o nome novamente:")
+    elif name=="":
+        messagebox.showerror("ERRO","Nome Vazio,  Insira o nome novamente:")
     else:
-        break
-
-HOST = socket.gethostname()
-PORT = 22222            # Porta que o Servidor esta
-tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-dest = (HOST, PORT)
-tcp.connect(dest)
-tcp.send(name.encode())
-
-while 1:
-    a = tcp.recv(2048)
-    if a == b'0':
-        name = input('Nome ja registrado, insira outro nome:')
-        while 1:
-            if ' ' in name:
-                name = input('Nao eh permitido espacos! Insira o nome novamente:')
-            else:
-                break
         tcp.send(name.encode())
-    elif a == b'1':
-        break
+    
+        a = tcp.recv(2048)
+        if a == b'0':
+            messagebox.showerror("ERRO","Nome ja registrado, insira outro nome:")
+        elif a == b'1':
+            root.destroy()
+
+
+#main
+
+root=tk.Tk()
+root.title("Chat app")
+root.geometry("300x120")
+root.resizable(0,0)
+root.configure(background="#2c231f")
+
+pyglet.font.add_file("fonts/omegaflight3d.ttf")
+
+title_frame=tk.LabelFrame(root,padx=5,pady=5,bg="#493933",highlightbackground="#000000")
+main_frame=tk.LabelFrame(root,padx=5,pady=5,bg="#493933",highlightbackground="#000000")
+
+title=tk.Label(title_frame,text="Chat login",font=("Omega Flight 3D",20),bg="#493933",fg="#9C8529")
+user_text=tk.Entry(main_frame,bg="#6d5c53",fg="#D5B638")
+login_button=tk.Button(main_frame,text="Login",command=lambda: getInput(root,user_text),bg="#f7da68")
+text1=tk.Label(main_frame,text="User name:",bg="#493933",fg="#9C8529")
+
+user_text.bind("<Return>",lambda event: getInput(root,user_text))
+
+
+title_frame.pack(pady=10)
+main_frame.pack()
+
+title.grid(row=0,column=0)
+text1.grid(row=1,column=0)
+user_text.grid(row=1,column=1)
+login_button.grid(row=1,column=2,padx=5)
+root.mainloop()
+
 
 UI = Screen(name)
 
